@@ -20,8 +20,46 @@ function! s:cmd_coolgrep(vimgrep, args)
     if empty(qflist)
         return
     endif
+    if !a:vimgrep
+        let [opt, greppat] = s:parse_grep_args(a:args)
+        call s:set_cols_of_qflist(qflist, opt, greppat)
+    endif
     call filter(qflist, '!s:is_comment_line(v:val)')
     call setqflist(qflist)
+endfunction
+
+function! s:parse_grep_args(args)
+    let opt = {'ignorecase': 0}
+    let word = ''
+    let args = a:args
+    while args !=# ''
+        let args = substitute(args, '^\s\+', '', '')
+        if args[0] ==# '-'
+            if args =~# '^\(-i\|--ignore-case\)'
+                let opt.ignorecase = 1
+            endif
+            let args = substitute(args, '^\S\+', '', '')
+        elseif args[0] ==# '"' || args[0] ==# "'"
+            let word = matchstr(args, '^['.args[0].']\zs[^'.args[0].']*\ze['.args[0].']')
+            break
+        else
+            let word = matchstr(args, '^\S\+')
+            break
+        endif
+    endwhile
+    return [opt, word]
+endfunction
+
+function! s:set_cols_of_qflist(qflist, opt, greppat)
+    " TODO: Convert grep regexp pattern to Vim regexp pattern.
+    let pat = '\v'.(a:opt.ignorecase ? '\c' : '\C').a:greppat
+    for qf in a:qflist
+        let idx = match(qf.text, pat)
+        if idx >=# 0
+            let qf.col = idx + 1
+        endif
+        " let qf.vcol = ...
+    endfor
 endfunction
 
 function! s:is_comment_line(qf)
