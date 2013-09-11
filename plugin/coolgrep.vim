@@ -27,7 +27,7 @@ function! s:cmd_coolgrep(vimgrep, args)
     call filter(qflist, '!s:is_comment_line(v:val)')
     call setqflist(qflist)
     " Rethrow QuickFixCmdPost because qflist is changed.
-    execute ("doautocmd QuickFixCmdPost ".a:vimgrep ? 'vimgrep' : 'grep')
+    execute "doautocmd QuickFixCmdPost" (a:vimgrep ? 'vimgrep' : 'grep')
 endfunction
 
 function! s:parse_grep_args(args)
