@@ -13,11 +13,18 @@ set cpo&vim
 " }}}
 
 function! s:cmd_coolgrep(vimgrep, args)
-    " Execute :vimgrep
-    execute (a:vimgrep ? 'vimgrep' : 'grep') a:args
+    let save_ei = &eventignore
+    set eventignore=QuickFixCmdPost
+    try
+        " Execute :vimgrep
+        execute (a:vimgrep ? 'vimgrep' : 'grep') a:args
+    finally
+        let &eventignore = save_ei
+    endtry
     " Get rid of comment lines.
     let qflist = getqflist()
     if empty(qflist)
+        execute "doautocmd QuickFixCmdPost" (a:vimgrep ? 'vimgrep' : 'grep')
         return
     endif
     if !a:vimgrep
